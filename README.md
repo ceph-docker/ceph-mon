@@ -23,6 +23,9 @@ sudo apt-get update
 sudo apt-get install lxc-docker
 ```
 
+
+Build Ceph MON Container
+------------------------
 ```
 # Build Container
 sudo docker build github.com/ceph-docker/ceph-mon
