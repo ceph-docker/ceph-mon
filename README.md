@@ -3,8 +3,27 @@ ceph-mon
 
 This Dockerfile is for use in bootstrapping an initial Ceph MON for use with Docker [ http://docker.io/ ].
 
-To use install docker [ http://www.docker.io/gettingstarted/#h_installation ], then simply call this repo using the build command:
+Install Docker
+--------------
+```
+Using Ubuntu 13.04 (64 bit)
+```
 
-  sudo docker build github.com/ceph-docker/ceph-mon
-  
-This repo is still under construction, more will be added when it is ready for use.
+```
+# Enable AUFS filesystem support
+sudo apt-get update
+sudo apt-get install linux-image-extra-`uname -r`
+```
+
+```
+# Install Docker
+sudo sh -c "curl http://get.docker.io/gpg | apt-key add -"
+sudo sh -c "echo deb https://get.docker.io/ubuntu docker main > /etc/apt/sources.list.d/docker.list"
+sudo apt-get update
+sudo apt-get install lxc-docker
+```
+
+```
+# Build Container
+sudo docker build github.com/ceph-docker/ceph-mon
+```
