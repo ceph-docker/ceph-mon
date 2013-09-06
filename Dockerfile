@@ -38,7 +38,7 @@ RUN apt-get install -y ceph
 EXPOSE 22
 
 # Add pub key
-RUN echo "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCn0TDI582HLyWJedaD1KeKfgJg9QerjKcD7F4zcn5rYkrr0qmH1bI4YYOGX9MFitEDXvcBHtY8JMOduVh+hlL8ko4mRy1bmYKxqi1/aSTnWMU0lmT6uvKzk/VmFVmWnvc9YMrHLHj+iQplhILeVlz6Y8ApmKhnGsmwysII6cKTHTPcTMBB8KpDMjljlXAa3q3O0jUgUfd+QDjCWPAoZqnt1ick1M+vP3nHfzIvp+C0VIte4Wkve7+KCU3lj61d/GiXCZivZF2jO+f22SjlYoA1z49fR8jZn06kHPsGJOMJ+rW+FQXY7wba3D21A1YaPHDvzJEUvKk33Kc6AjFfA7Sf root@localhost" > /root/.ssh/authorized_keys
+RUN echo "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC4DAGxSpi4azGGW8R6FzcOjT/Av8ripkJs1SiP0SyDQ4ZcqjFHoVmU3ckzpvDtH+wb0AtjYqBce7/O7FZf7joYgwf8FMUJhRcVu5lZSbvf9F1oq6hWZ8UM7J+ZjnqZu6cCMLpnWuVzZ/LHrhUI+80l+0FUw/Pf0c6Z3QRyWhfCrN0SBvQ9py2o8LtHyfwNIgu25OZVynICHtFHftEVYwAEBK6GYUm5Rp9IjQ9IkUwtT3L8VmhLNFXjoSn4IUEQugIvJ9CWku6a1UJHLpGowbuUqjDH0ONlCaH4o4nPYnG4bM4x65XSq/W1bFM9u318OzTHBIhiu7GoXAbPEVb14YUR root@docker-ceph" > /root/.ssh/authorized_keys
 
 # Bootstrap mon
 RUN echo "[global]\nauth supported = cephx\nkeyring = /etc/ceph/keyring\n\n[mon]\nlog file = /var/log/ceph/mon.a.log\ndebug mon = 20\ndebug ms = 1\nosd crush chooseleaf type = 0" > /etc/ceph/ceph.conf
