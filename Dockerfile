@@ -5,14 +5,18 @@
 FROM ubuntu:precise
 MAINTAINER Patrick McGarry "patrick@inktank.com"
 
-# Set hostname
-RUN hostname cephmona
-
 # Make sure base repository info is there
 RUN echo "deb http://archive.ubuntu.com/ubuntu precise main universe" > /etc/apt/sources.list
 
+# Fix initctl
+RUN dpkg-divert --local --rename --add /sbin/initctl
+RUN ln -s /bin/true /sbin/initctl
+
 # Install required packages
 RUN apt-get update && apt-get install -y wget sudo openssh-server
+
+# Set resolveable hostname
+RUN echo "127.0.0.1 cephmona" > /etc/hosts
 
 # Add required directories
 RUN mkdir -p /var/run/sshd /dev/fuse /root/.ssh /etc/ceph /var/lib/ceph/mon.a/store.db
@@ -40,8 +44,8 @@ RUN echo "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCn0TDI582HLyWJedaD1KeKfgJg9QerjK
 RUN echo "[global]\nauth supported = cephx\nkeyring = /etc/ceph/keyring\n\n[mon]\nlog file = /var/log/ceph/mon.a.log\ndebug mon = 20\ndebug ms = 1\nosd crush chooseleaf type = 0" > /etc/ceph/ceph.conf
 RUN chmod 0644 /etc/ceph/ceph.conf
 
-RUN ceph-authtool --create-keyring /etc/ceph/keyring
-RUN ceph-authtool /etc/ceph/keyring --gen-key -n mon. /etc/ceph/keyring
+RUN ceph-authtool --create-keyring /etc/ceph/keyring --gen-key -n client.admin
+RUN ceph-authtool /etc/ceph/keyring --gen-key -n mon.
 RUN chmod 0644 /etc/ceph/keyring
 
 RUN monmaptool --create --clobber --add a cephmona:6789 --print
