@@ -16,6 +16,7 @@ RUN ln -s /bin/true /sbin/initctl
 RUN apt-get update && apt-get install -y wget sudo openssh-server
 
 # Set resolveable hostname
+# >>> Figure out hostname 
 RUN echo "127.0.0.1 cephmona" > /etc/hosts
 
 # Add required directories
@@ -41,18 +42,18 @@ EXPOSE 22
 RUN echo "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC4DAGxSpi4azGGW8R6FzcOjT/Av8ripkJs1SiP0SyDQ4ZcqjFHoVmU3ckzpvDtH+wb0AtjYqBce7/O7FZf7joYgwf8FMUJhRcVu5lZSbvf9F1oq6hWZ8UM7J+ZjnqZu6cCMLpnWuVzZ/LHrhUI+80l+0FUw/Pf0c6Z3QRyWhfCrN0SBvQ9py2o8LtHyfwNIgu25OZVynICHtFHftEVYwAEBK6GYUm5Rp9IjQ9IkUwtT3L8VmhLNFXjoSn4IUEQugIvJ9CWku6a1UJHLpGowbuUqjDH0ONlCaH4o4nPYnG4bM4x65XSq/W1bFM9u318OzTHBIhiu7GoXAbPEVb14YUR root@docker-ceph" > /root/.ssh/authorized_keys
 
 # Bootstrap mon
-RUN echo "[global]\nauth supported = cephx\nkeyring = /etc/ceph/keyring\n\n[mon]\nlog file = /var/log/ceph/mon.a.log\ndebug mon = 20\ndebug ms = 1\nosd crush chooseleaf type = 0" > /etc/ceph/ceph.conf
+RUN echo "[global]\nfsid = $uuid\ndebug mon = 20\ndebug ms = 1\nosd crush chooseleaf type = 0" > /etc/ceph/ceph.conf
 RUN chmod 0644 /etc/ceph/ceph.conf
 
-RUN ceph-authtool --create-keyring /etc/ceph/keyring --gen-key -n client.admin
-RUN ceph-authtool /etc/ceph/keyring --gen-key -n mon.
-RUN chmod 0644 /etc/ceph/keyring
+RUN ceph-authtool /etc/ceph/temp.keyring --gen-key -n mon.
+RUN chmod 0644 /etc/ceph/temp.keyring
 
-RUN monmaptool --create --clobber --add a cephmona:6789 --print
-RUN ceph-authtool --gen-key --name=client.admin --set-uid=0 --cap mon 'allow *' --cap osd 'allow *'
+RUN monmaptool --create --clobber --add $hostname --fsid $uuid cephmona:6789 --print 
+RUN ceph-authtool --gen-key --name=client.admin --set-uid=0 --cap mon 'allow *'
 
-RUN ceph-mon -c /etc/ceph/ceph.conf -i a --mkfs --monmap mm --mon-data /var/lib/ceph/mon.a -k /etc/ceph/keyring
-RUN ceph-mon -c /etc/ceph/ceph.conf -i a --mon-data /var/lib/ceph/mon.a
-RUN ceph -c /etc/ceph/ceph.conf -k /etc/ceph/keyring --monmap mm health
+RUN ceph-mon -c /etc/ceph/ceph.conf -i $hostname --mkfs --monmap mm -k /etc/ceph/temp.keyring
+RUN ceph-mon -c /etc/ceph/ceph.conf -i $hostname --mon-data /var/lib/ceph/ceph-$hotmame
+RUN ceph -c /etc/ceph/ceph.conf -k /etc/ceph/temp.keyring --monmap mm health
+ceph-create-keys {args} /tmp/mon.keyring --cap mon 'allow *'
 
 CMD ["/usr/sbin/sshd","-D"]
