@@ -17,11 +17,13 @@ RUN apt-get update && apt-get install -y wget sudo openssh-server
 
 # Set resolveable hostname
 # >>> Figure out hostname 
-RUN echo "127.0.0.1 cephmona" > /etc/hosts
+RUN echo "127.0.0.1 $hostname" > /etc/hosts
+
+# UUID Generation
+??
 
 # Add required directories
-RUN mkdir -p /var/run/sshd /dev/fuse /root/.ssh /etc/ceph /var/lib/ceph/mon.a/store.db
-RUN chmod 0755 /etc/ceph
+RUN mkdir -p /var/run/sshd /dev/fuse /root/.ssh
 
 # Fix initctl
 RUN dpkg-divert --local --rename --add /sbin/initctl
@@ -45,15 +47,15 @@ RUN echo "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC4DAGxSpi4azGGW8R6FzcOjT/Av8ripk
 RUN echo "[global]\nfsid = $uuid\ndebug mon = 20\ndebug ms = 1\nosd crush chooseleaf type = 0" > /etc/ceph/ceph.conf
 RUN chmod 0644 /etc/ceph/ceph.conf
 
-RUN ceph-authtool /etc/ceph/temp.keyring --gen-key -n mon.
+RUN ceph-authtool /etc/ceph/temp.keyring --gen-key --cap mon 'allow *' -n mon.
 RUN chmod 0644 /etc/ceph/temp.keyring
 
-RUN monmaptool --create --clobber --add $hostname --fsid $uuid cephmona:6789 --print 
-RUN ceph-authtool --gen-key --name=client.admin --set-uid=0 --cap mon 'allow *'
+RUN monmaptool --create --clobber --add $hostname --fsid $uuid $hostname:6789 --print 
 
-RUN ceph-mon -c /etc/ceph/ceph.conf -i $hostname --mkfs --monmap mm -k /etc/ceph/temp.keyring
-RUN ceph-mon -c /etc/ceph/ceph.conf -i $hostname --mon-data /var/lib/ceph/ceph-$hotmame
-RUN ceph -c /etc/ceph/ceph.conf -k /etc/ceph/temp.keyring --monmap mm health
-ceph-create-keys {args} /tmp/mon.keyring --cap mon 'allow *'
+RUN mkdir /var/lib/ceph/mon/ceph-$hostname
+RUN ceph-mon -i $hostname --mkfs --monmap mm -k /etc/ceph/temp.keyring
+RUN ceph-mon -i $hostname --mon-data /var/lib/ceph/ceph-$hotmame
+RUN ceph health
+ceph-create-keys -i -v $hostname
 
 CMD ["/usr/sbin/sshd","-D"]
